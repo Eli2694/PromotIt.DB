@@ -1,0 +1,34 @@
+--טבלת קמפיינים
+create  table Campaigns(CampaignsID int primary key identity,
+UserID int foreign key references Users(UserID),
+AssociationID int foreign key references Associations(AssociationID),
+CampaginName varchar(100),CampaginHashtag nvarchar(20),CampaginWebsite VARCHAR(512))
+
+--2 יצירת פונקציה שתכניס קמפיין לטבלה 
+create procedure InsertCampagin @CampaginName varchar(100),@CampaginHashtag nvarchar(20),
+@CampaginWebsite VARCHAR(512),
+@FullName varchar(50),@Email nvarchar(255)
+as
+begin
+--הגדרת משתנים
+declare @Answer varchar(100),@UserID int,@AssociationID int
+select @UserID = (select UserID from Users where FullName = @FullName and Email = @Email)
+if @UserID is null
+begin
+ select @Answer ='המשתמש לא נמצא במערכת'
+end
+else
+begin 
+ select @AssociationID = (select AssociationID from Associations where UserID = @UserID)
+ if @AssociationID is null
+ begin
+   select @Answer ='המשתמש לא הכניס עמותה'
+ end
+ else
+ begin
+  insert into Campaigns values(@UserID,@AssociationID,@CampaginName,@CampaginHashtag,@CampaginWebsite)
+   select @Answer = 'הקמפיין נרשם במערכת'
+ end
+ end
+ select @Answer
+ end

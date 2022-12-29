@@ -1,0 +1,39 @@
+--1 טבלת עמותות
+create  table Associations(AssociationID int primary key identity,
+UserID int foreign key references Users(UserID),AssociationName varchar(100),
+AssociationEmail nvarchar(255),AssociationWebsite VARCHAR(512),RegisteredAssociation varchar(10))
+
+--2 יצירת פונקציה שתבדוק אם העמותה כבר קיימת בטבלה
+--select @employee_code =(select code from employees where ID = @ID)
+create procedure checkAssociation @AssociationName varchar(100),@AssociationEmail nvarchar(255),
+@AssociationWebsite VARCHAR(512),@RegisteredAssociation varchar(10),
+@FullName varchar(50),@Email nvarchar(255)
+as
+begin
+--הגדרת משתנים
+declare @Answer varchar(100),@UserID int
+select @UserID = (select UserID from Users where FullName = @FullName and Email = @Email)
+if @UserID is null
+begin
+ select @Answer ='המשתמש לא נמצא במערכת'
+end
+else
+begin 
+ if exists(select AssociationID from Associations where AssociationName = @AssociationName
+ and AssociationEmail=@AssociationEmail and AssociationWebsite = @AssociationWebsite)
+ begin
+  
+  select @Answer = 'העמותה כבר במערכת , אין צורךלהירשם שוב'
+ end
+ else
+ begin
+	insert into Associations values(@UserID,@AssociationName,@AssociationEmail,@AssociationWebsite,@RegisteredAssociation)
+	select @Answer = 'הרשמת העמותה הצליחה'
+ end
+end
+ select @Answer
+end
+
+
+--הפעלה של הפונקציה 
+-- exec checkAssociation UserID,AssociationName,AssociationEmail,AssociationWebsite,RegisteredAssociation

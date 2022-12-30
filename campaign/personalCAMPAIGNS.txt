@@ -1,0 +1,70 @@
+--טבלת קמפיינים
+create  table Campaigns(CampaignsID int primary key identity,
+UserID int foreign key references Users(UserID),
+AssociationID int foreign key references Associations(AssociationID),
+CampaginName varchar(100),CampaginHashtag nvarchar(20),CampaginWebsite VARCHAR(512))
+
+--2 יצירת פונקציה שתכניס קמפיין לטבלה 
+create procedure InsertCampagin @CampaginName varchar(100),@CampaginHashtag nvarchar(20),
+@CampaginWebsite VARCHAR(512),
+@FullName varchar(50),@Email nvarchar(255)
+as
+begin
+--הגדרת משתנים
+declare @Answer varchar(100),@UserID int,@AssociationID int
+select @UserID = (select UserID from Users where FullName = @FullName and Email = @Email)
+if @UserID is null
+begin
+ select @Answer ='המשתמש לא נמצא במערכת'
+end
+else
+begin 
+ select @AssociationID = (select AssociationID from Associations where UserID = @UserID)
+ if @AssociationID is null
+ begin
+   select @Answer ='המשתמש לא הכניס עמותה'
+ end
+ else
+ begin
+  insert into Campaigns values(@UserID,@AssociationID,@CampaginName,@CampaginHashtag,@CampaginWebsite)
+   select @Answer = 'הקמפיין נרשם במערכת'
+ end
+ end
+ select @Answer
+ end
+
+ --3 יצירת פונקציה שתביא נתונים של כל הקמפיינים שהמשתמש יצר 
+ create procedure GetPersonalCampaignList @Email nvarchar(255)
+ as
+ begin
+ declare @Answer varchar(100),@UserID int
+  select @UserID = (select UserID from Users where Email = @Email)
+  select CampaginName,CampaginWebsite,CampaginHashtag,CampaignsID from Campaigns 
+  where UserID = @UserID
+ end
+
+ --exec GetPersonalCampaignList 'gilgureli@gmail.com'
+ --select * from Campaigns
+ 
+ 
+--4 יצירת פונקציה לעדכון קמפיין
+create procedure UpdatePersonalCampaign @CampaginName varchar(100),@CampaginHashtag nvarchar(20),
+@CampaginWebsite VARCHAR(512),@CampaignsID int
+as
+begin
+declare @answer varchar(50)
+if exists(select UserID from Campaigns where CampaignsID = @CampaignsID)
+begin
+  update Campaigns
+  set CampaginName = @CampaginName,CampaginHashtag = @CampaginHashtag,CampaginWebsite = @CampaginWebsite
+  where CampaignsID = @CampaignsID
+  select @answer = 'קמפיין עודכן בהצלחה'
+end
+else
+begin
+ select @answer = 'קמפיין לא עודכן בהצלחה'
+end
+ select @answer
+end
+ 
+ -- exec UpdatePersonalCampaign 

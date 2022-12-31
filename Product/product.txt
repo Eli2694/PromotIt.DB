@@ -1,0 +1,26 @@
+--1 יצירת טבלה של מוצרים
+create  table Products(ProductID int primary key identity,
+CampaignID int foreign key references Campaigns(CampaignsID),
+ProductName varchar(100),UnitPrice money,UnitsInStock int)
+
+drop table Products
+
+--2פומקציה להכנסת מוצר
+create procedure DonateProduct @ProductName varchar(100),@UnitPrice money,@UnitsInStock int,
+@CampaignsID int
+ as
+ begin
+ declare @Answer varchar(100)
+  if exists(select CampaignsID from Campaigns where CampaignsID = @CampaignsID)
+  begin 
+   select @Answer ='המוצר נכנס לקמפיין'
+   insert into Products values(@CampaignsID,@ProductName, @UnitPrice,@UnitsInStock)
+  end
+  else
+  begin
+   select @Answer = 'הקמפיין לא נמצא '
+  end
+  select @Answer
+ end
+
+ -- exec DonateProduct

@@ -24,3 +24,27 @@ create procedure DonateProduct @ProductName varchar(100),@UnitPrice money,@Units
  end
 
  -- exec DonateProduct
+ select ProductID from Products where CampaignID = 2 and ProductName = 'PrinStory Womens Pajamas'
+ select * from Products
+
+--update product
+create procedure UpdataProduct @ProductName varchar(100),@UnitPrice money,@UnitsInStock int,
+@ProductID int
+as
+begin
+ declare @Answer varchar(100)
+  if exists(select ProductID from Products where ProductID = @ProductID)
+  begin
+    update Products
+	set ProductName = @ProductName, UnitPrice = @UnitPrice, UnitsInStock = @UnitsInStock
+	where ProductID = @ProductID
+	select @Answer = 'המוצר נמצא '
+  end
+  else
+  begin
+  select @Answer = 'המוצר לא נמצא '
+  end
+  select @Answer
+end
+
+--select *from products

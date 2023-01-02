@@ -68,3 +68,79 @@ end
 end
  
  -- exec UpdatePersonalCampaign 
+
+--1 יצירת טבלה של מוצרים
+create table Products(ProductID int primary key identity,
+CampaignID int foreign key references Campaigns(CampaignsID),
+ProductName varchar(100),UnitPrice money,UnitsInStock int,RepresantativeID int)
+
+-- שינוי טבלה, הוספת עמודה
+ALTER TABLE Products
+ADD UserID int foreign key references Users(UserID);
+
+ALTER TABLE Products
+DROP COLUMN UserID;
+
+
+--2פומקציה להכנסת מוצר
+alter procedure DonateProduct @ProductName varchar(100),@UnitPrice money,@UnitsInStock int,
+@CampaignsID int,@Email nvarchar(255)
+ as
+ begin
+ declare @Answer varchar(100),@UserID int
+  if exists(select CampaignsID from Campaigns where CampaignsID = @CampaignsID)
+  begin 
+   select @Answer ='המוצר נכנס לקמפיין'
+   select @UserID=(select UserID from Users where Email=@Email)
+   insert into Products values(@CampaignsID,@ProductName, @UnitPrice,@UnitsInStock,@UserID)
+  end
+  else
+  begin
+   select @Answer = 'הקמפיין לא נמצא '
+  end
+  select @Answer
+ end
+
+ -- exec DonateProduct
+ select ProductID from Products where CampaignID = 2 and ProductName = 'PrinStory Womens Pajamas'
+ select * from Products
+
+--update product
+create procedure UpdataProduct @ProductName varchar(100),@UnitPrice money,@UnitsInStock int,
+@ProductID int
+as
+begin
+ declare @Answer varchar(100)
+  if exists(select ProductID from Products where ProductID = @ProductID)
+  begin
+    update Products
+	set ProductName = @ProductName, UnitPrice = @UnitPrice, UnitsInStock = @UnitsInStock
+	where ProductID = @ProductID
+	select @Answer = 'המוצר נמצא '
+  end
+  else
+  begin
+  select @Answer = 'המוצר לא נמצא '
+  end
+  select @Answer
+end
+
+--להביא מוצרים ששייכים רק לנציג שתרם אותם
+create procedure GetProductsThatBelongToMe @CampaignID int, @Email nvarchar(255) 
+as
+begin
+    declare @UserID int
+    select @UserID=(select UserID from Users where Email=@Email)
+	select ProductName,UnitPrice,UnitsInStock,CampaignID from Products 
+	where CampaignID = @CampaignID and Products.RepresantativeID = @UserID
+end
+
+
+--פונקציה למחיקת קמפיין וכל המוצרים איתו ממסד נתונים
+
+create procedure deleteCampaignAndItsProducts @CampaignID int
+AS
+BEGIN
+     delete from Products where CampaignID = @CampaignID
+	 delete from Campaigns where CampaignsID = @CampaignID
+END

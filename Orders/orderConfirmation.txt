@@ -1,26 +1,34 @@
---1 טבלת הזמנות
-create  table Orders(OrderID int primary key identity,
-UserID int foreign key references Users(UserID),
 ProductID int foreign key references Products(ProductID),
 Country nvarchar(15),City nvarchar(15),HomeAddress nvarchar(60),
-PostalCode nvarchar(12),PhoneNumber nvarchar(15))
+PostalCode nvarchar(12),PhoneNumber nvarchar(15),OrderDate datetime,OrderConfirmation int)
+
+drop table Orders
+select * from [order confirmation]
+select * from orders
 
 -- טבלת אישור הזמנות
 create table [Order Confirmation](code int primary key identity,
 OrderID int,RepresantativeID int)
 
+drop table [Order Confirmation]
+
 -- אישור הזמנה על ידי נציג עסקי
-create procedure OrderConfirmation @OrderID int,@Email nvarchar(255)
+alter procedure OrderConfirmation @OrderID int,@Email nvarchar(255)
 as 
 begin
    declare @UserID int 
    select @UserID=(select UserID from Users where Email=@Email)
-   insert into [Order Confirmation] values(@OrderID,@UserID)
+   if not exists(select OrderID from [Order Confirmation] where OrderID = @OrderID)
+   begin
+        insert into [Order Confirmation] values(@OrderID,@UserID)
+		update Orders set OrderConfirmation = 1
+		where Orders.OrderID = @OrderID
+   end 
 end
 
 select * from [Order Confirmation]
 
-drop table Orders
+
 
 --פוקציה בשביל להוריד מוצר אחד מהמלאי
 create procedure UpdateUnitsInStockAfterPurchase @ProductID int
@@ -41,13 +49,16 @@ begin
     declare @UserID int
 	select @UserID=(select UserID from Users where Email=@Email)
 	select Orders.OrderID,Orders.ProductID,Country,City,HomeAddress,PostalCode,PhoneNumber,
-	ProductName,UnitPrice,UnitsInStock
+	ProductName,UnitPrice,UnitsInStock,OrderDate
 	from Orders 
 	inner join Products
 	on Orders.ProductID = Products.ProductID
 	where RepresantativeID = @UserID
+	and OrderConfirmation = 0
 end
 
-select* from orders
+select* from [order Confirmation]
+select * from orders
+delete from [order Confirmation]
 
 	

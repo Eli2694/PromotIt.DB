@@ -1,0 +1,53 @@
+--1 טבלת הזמנות
+create  table Orders(OrderID int primary key identity,
+UserID int foreign key references Users(UserID),
+ProductID int foreign key references Products(ProductID),
+Country nvarchar(15),City nvarchar(15),HomeAddress nvarchar(60),
+PostalCode nvarchar(12),PhoneNumber nvarchar(15))
+
+-- טבלת אישור הזמנות
+create table [Order Confirmation](code int primary key identity,
+OrderID int,RepresantativeID int)
+
+-- אישור הזמנה על ידי נציג עסקי
+create procedure OrderConfirmation @OrderID int,@Email nvarchar(255)
+as 
+begin
+   declare @UserID int 
+   select @UserID=(select UserID from Users where Email=@Email)
+   insert into [Order Confirmation] values(@OrderID,@UserID)
+end
+
+select * from [Order Confirmation]
+
+drop table Orders
+
+--פוקציה בשביל להוריד מוצר אחד מהמלאי
+create procedure UpdateUnitsInStockAfterPurchase @ProductID int
+as
+begin
+ update Products 
+ set UnitsInStock = UnitsInStock - 1
+ where ProductID = ProductID
+end
+
+--3פונקציה בשביל לקנות מוצר
+--create procedure BuyProduct 
+
+--4 פונקציה בשביל נציג עסקי שיקבל רק את ההזמנות למוצרים אותם הוא תרם
+alter procedure GetOrdersThatBelongToMe @Email nvarchar(255)
+as
+begin
+    declare @UserID int
+	select @UserID=(select UserID from Users where Email=@Email)
+	select Orders.OrderID,Orders.ProductID,Country,City,HomeAddress,PostalCode,PhoneNumber,
+	ProductName,UnitPrice,UnitsInStock
+	from Orders 
+	inner join Products
+	on Orders.ProductID = Products.ProductID
+	where RepresantativeID = @UserID
+end
+
+select* from orders
+
+	

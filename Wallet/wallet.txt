@@ -1,0 +1,49 @@
+create  table Wallet(code int primary key identity,UserMoney Money,UserID int,Email nvarchar(255))
+select * from Wallet
+
+create procedure InitializeWallet @Email nvarchar(255)
+as 
+begin
+    declare @UserID int,@Money money
+    select @UserID=(select UserID from Users where Email=@Email)
+	select @Money=(select UserMoney from Wallet where UserID = @UserID)
+	
+	if @Money is null
+	begin
+	   insert into Wallet values(0,@UserID,@Email)
+	end
+end
+
+alter procedure getUserMoney @Email nvarchar(255)
+as
+begin
+    --declare @UserID int,@Money money
+    --select @UserID=(select UserID from Users where Email=@Email)
+	select UserMoney from Wallet where Email = @Email
+end
+
+select * from Wallet
+
+create procedure UpdateUserMoney @UserMoney money,@Email nvarchar(255)
+as
+begin
+     declare @UserID int,@Money money
+	 select @UserID=(select UserID from Users where Email=@Email)
+	 select @Money=(select UserMoney from Wallet where UserID = @UserID)
+	 Update Wallet
+	 Set UserMoney = @Money + @UserMoney
+	 where UserID = @UserID
+end
+
+create procedure DecreaseUserMoneyAfterBuy @UserMoney money,@Email nvarchar(255)
+as
+begin
+     declare @UserID int,@Money money
+	 select @UserID=(select UserID from Users where Email=@Email)
+	 select @Money=(select UserMoney from Wallet where UserID = @UserID)
+	 Update Wallet
+	 Set UserMoney = @Money - @UserMoney
+	 where UserID = @UserID
+end
+
+select * from Products

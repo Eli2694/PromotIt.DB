@@ -35,15 +35,18 @@ begin
 	 where UserID = @UserID
 end
 
-create procedure DecreaseUserMoneyAfterBuy @UserMoney money,@Email nvarchar(255)
+alter procedure DecreaseUserMoneyAfterBuy @UserMoney money,@Email nvarchar(255)
 as
 begin
      declare @UserID int,@Money money
 	 select @UserID=(select UserID from Users where Email=@Email)
 	 select @Money=(select UserMoney from Wallet where UserID = @UserID)
 	 Update Wallet
-	 Set UserMoney = @Money - @UserMoney
+	 Set UserMoney = (@Money - @UserMoney)
 	 where UserID = @UserID
 end
 
 select * from Products
+select * from Wallet
+
+--exec DecreaseUserMoneyAfterBuy 30,'gilgurforyou@gmail.com'

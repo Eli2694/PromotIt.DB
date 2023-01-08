@@ -1,0 +1,33 @@
+create  table BusinessCompany(CompanyID int primary key identity,
+UserID int foreign key references Users(UserID),
+CompanyName varchar(100),
+CompanyWebsite VARCHAR(512),
+RegisteredCompany varchar(10))
+
+create procedure CreateBusinessCompany @CompanyName varchar(100),
+@CompanyWebsite VARCHAR(512),@RegisteredCompany varchar(10),@Email nvarchar(255)
+as
+begin
+--הגדרת משתנים
+declare @Answer varchar(100),@UserID int
+select @UserID = (select UserID from Users where  Email = @Email)
+if @UserID is null
+begin
+ select @Answer ='המשתמש לא נמצא במערכת'
+end
+else
+begin 
+ if exists(select CompanyID from BusinessCompany where CompanyName = @CompanyName 
+ and CompanyWebsite = @CompanyWebsite)
+ begin
+  
+  select @Answer = 'העמותה כבר במערכת , אין צורךלהירשם שוב'
+ end
+ else
+ begin
+	insert into BusinessCompany values(@UserID,@CompanyName,@CompanyWebsite,@RegisteredCompany)
+	select @Answer = 'הרשמת העמותה הצליחה'
+ end
+end
+ select @Answer
+end

@@ -4,6 +4,11 @@ UserID int foreign key references Users(UserID),
 AssociationID int foreign key references Associations(AssociationID),
 CampaginName varchar(100),CampaginHashtag nvarchar(20),CampaginWebsite VARCHAR(512))
 
+delete from Campaigns
+ALTER TABLE Campaigns
+ADD CampaignCreation datetime;
+select*from Campaigns
+
 --2 יצירת פונקציה שתכניס קמפיין לטבלה 
 alter procedure InsertCampagin @CampaginName varchar(100),@CampaginHashtag nvarchar(20),
 @CampaginWebsite VARCHAR(512),
@@ -26,7 +31,7 @@ begin
  end
  else
  begin
-  insert into Campaigns values(@UserID,@AssociationID,@CampaginName,@CampaginHashtag,@CampaginWebsite,@DonationAmount)
+  insert into Campaigns values(@UserID,@AssociationID,@CampaginName,@CampaginHashtag,@CampaginWebsite,@DonationAmount,GETDATE())
    select @Answer = 'הקמפיין נרשם במערכת'
  end
  end

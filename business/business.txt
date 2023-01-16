@@ -5,14 +5,14 @@ ProductName varchar(100),UnitPrice money,UnitsInStock int,
 RepresantativeID int)
 
 -- שינוי טבלה, הוספת עמודה
-ALTER TABLE Products
-ADD RepresentativeID int;
+--ALTER TABLE Products
+--ADD RepresentativeID int;
+--שינוי טבלה,הורדת עמודה
+--ALTER TABLE Products
+--DROP COLUMN RepresentativeID;
 
-ALTER TABLE Products
-DROP COLUMN RepresentativeID;
-
-select* from products
-delete from products
+--select* from products
+--delete from products
 
 
 --2פומקציה להכנסת מוצר
@@ -21,6 +21,7 @@ alter procedure DonateProduct @ProductName varchar(100),@UnitPrice money,@UnitsI
  as
  begin
  declare @Answer varchar(100),@UserID int
+ --בדיקה שהקמפיין קיים לפני שתורמים לו מוצר
   if exists(select CampaignsID from Campaigns where CampaignsID = @CampaignsID)
   begin 
    select @Answer ='המוצר נכנס לקמפיין'
@@ -35,8 +36,6 @@ alter procedure DonateProduct @ProductName varchar(100),@UnitPrice money,@UnitsI
  end
 
  -- exec DonateProduct
- select ProductID from Products where CampaignID = 2 and ProductName = 'PrinStory Womens Pajamas'
- select * from Products
 
 --update product
 create procedure UpdataProduct @ProductName varchar(100),@UnitPrice money,@UnitsInStock int,
@@ -44,6 +43,7 @@ create procedure UpdataProduct @ProductName varchar(100),@UnitPrice money,@Units
 as
 begin
  declare @Answer varchar(100)
+ --בדיקה שהמוצר קיים לפני שמשנים את הנתונים שלו
   if exists(select ProductID from Products where ProductID = @ProductID)
   begin
     update Products
@@ -69,14 +69,9 @@ begin
 end
 
 
---פונקציה למחיקת קמפיין וכל המוצרים איתו ממסד נתונים
-
-create procedure deleteCampaignAndItsProducts @CampaignID int
+--פונקציה למחיקת קמפיין 
+alter procedure deleteCampaignAndItsProducts @CampaignID int
 AS
 BEGIN
-     delete from Products where CampaignID = @CampaignID
 	 delete from Campaigns where CampaignsID = @CampaignID
 END
-
-select * from Products
-select * from Campaigns

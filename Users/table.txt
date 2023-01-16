@@ -1,3 +1,0 @@
---1 יצירת טבלת משתמשים רשומים לאתר
-create  table Users(UserID int primary key identity,FullName varchar(50),
-Email nvarchar(255))

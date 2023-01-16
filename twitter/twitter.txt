@@ -1,0 +1,137 @@
+--צירת טבלה שמשקפת אילו קמפיינים פעיל חברתי שיווק
+create  table Twitter(LastWorkDay datetime,
+UserID int ,
+CampaignID int,
+NumberOfTweets int)
+
+
+--יצירת טבלה שמציגה כמה נקודות יש לפעיל חברתי בעקבות שיווק קמפיינים
+create  table TweetPoints(UserID int,Points int)
+
+
+--לאחר קניה של מוצר בעזרת נקודות,כמות הנקודות צריכה לרדת
+create procedure decreaseActivistPoints @Points int,@Email nvarchar(255)
+as
+begin
+     declare @UserID int
+	 select @UserID=(select UserID from Users where Email=@Email)
+	 update TweetPoints
+	 set Points = Points - @Points
+	 where UserID = @UserID
+end
+
+--קבלת מספר הנקודות של פעיל חברתי ממסד נתונים
+alter procedure getActivistPoints @Email nvarchar(255)
+as 
+begin
+    declare @UserID int, @Points int
+	--בדיקה שהמשתמש רשום במסד נתונים
+	 select @UserID=(select UserID from Users where Email=@Email)
+	 if @UserID is not null
+	   begin
+	   --בדיקה שלפעיל חברתי יש נקודות, גם אם אלו 0 נקודות
+	       select @UserID=(select UserID from TweetPoints where UserID = @UserID)
+		   if @UserID is not null
+		   begin
+		      select @Points=(select Points from TweetPoints where UserID = @UserID)
+		   end
+		   else
+		   begin
+		       select  @Points = 0
+		   end
+	   end
+	   else
+	   begin
+	      select  @Points = 0
+	   end
+ select @Points
+end
+
+--לאחר שיווק של קמפיין יש לעדכן את מספר הפעמים שפעיל חברתי שיווק אותו
+create procedure updateTweetsPerCampaign @Email nvarchar(255),@Tweets int,@CampaignId int
+as
+begin
+     declare @UserID int,@answer varchar(100)
+	 select @UserID=(select UserID from Users where Email=@Email)
+	 if @UserID is not null
+	    begin
+		   if exists(select UserID from Twitter where CampaignID = @CampaignId)
+		    begin
+				update Twitter
+				set NumberOfTweets = NumberOfTweets + @Tweets, LastWorkDay = GETDATE()
+				where CampaignID = @CampaignId
+				select @answer = 'כמות ציוצים של קמפיין עודכנו בהצלחה'
+		     end
+		     else
+		     begin
+				  select @answer = 'קמפיין לא נמצא,יצירת קמפיין' 
+				  insert into Twitter values(getdate(),@UserID,@CampaignId,@Tweets);
+		     end
+		 end
+	     else
+	     begin
+		      select @answer =  'משתמש לא נמצא'
+	      end
+	select @answer
+end
+
+--לאחר שפעיל חברתי משווק קמפיין הוא מקבל נקודות, לכן יש לעדכן את כמות הנקודות שלו 
+alter procedure updateUserPoints @Email nvarchar(255),@Points int
+as
+begin
+    declare @UserID int,@answer varchar(100)
+    select @UserID=(select UserID from Users where Email=@Email)
+	if @UserID is not null
+	   begin
+	       update TweetPoints
+		   set Points = Points + @Points
+		   where UserID = @UserID
+		   select @answer = 'הנקודות עודכנו'
+	   end
+	   else
+	   begin
+	      select @answer = 'המשתמש לא נמצא בשביל לעדכן לו את הנקודות'
+	   end
+	   select @answer
+end
+--כאשר פעיל חברתי לוחץ על כפתור קידום קמפיין ,המידע נשמר במסד נתונים
+alter procedure InitializeTwitterCampaignPromotion @CampaignID int,@Email nvarchar(255)
+as
+begin
+    declare @UserID int,@answer varchar(100)
+	select @UserID=(select UserID from Users where Email=@Email)
+	if @UserID is not null
+	begin
+	    if exists(select UserID from Twitter where CampaignID = @CampaignID)
+		begin
+		    select @answer = 'הקמפיין נמצא , אין צורך להכניס אותו שוב'
+		end
+		else
+		begin
+		     insert into Twitter values(getdate(),@UserID,@CampaignID,0);
+			 select @answer = 'הקמפיין הוכנס לרשימה'
+		end
+	end
+	 select @answer
+end
+--כל פעיל חברתי יתחיל את עם 0 נקודות
+create procedure InitializeUserPoints @Email nvarchar(255)
+as
+begin
+    declare @UserID int,@answer varchar(100)
+	select @UserID=(select UserID from Users where Email=@Email)
+	if @UserID is not null
+	begin
+	    if exists(select UserID from TweetPoints where UserID = @UserID)
+		begin
+		    select @answer = 'המשתמש נמצא ברשימה, אין צורך להכניס אותו פעם נוספת'
+		end
+		else
+		begin
+		     insert into TweetPoints values(@UserID,0);
+			 select @answer = 'המשתמש הוכנס לרשימה עם מאזן של 0 נקודות'
+		end
+	end
+	 select @answer
+end
+

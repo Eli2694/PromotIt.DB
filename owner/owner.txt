@@ -1,0 +1,120 @@
+--פונקציה לקבלת כמות משתמשים באתר וסוג המשתמשים
+alter procedure CountDifferentUsers
+as
+begin
+    declare @AllUsers int,@Business int,@Nonprogit int,@Activist int
+
+	select @AllUsers =(select count(*) from Users)
+	if @AllUsers is null
+	   begin
+	        select @AllUsers = 0
+	   end
+	   
+
+	select @Business =(select count(*) from Users where Users.UserRole = 'BusinessRepresentative')
+	if @Business is null
+	   begin
+	        select @Business = 0
+	   end
+	   
+
+	select @Nonprogit =(select count(*) from Users where Users.UserRole = 'NonProfitRepresentative')
+	if @Nonprogit is null
+	   begin
+	        select @Nonprogit = 0
+	   end
+
+	select @Activist =(select count(*) from Users where Users.UserRole = 'SocialActivist')
+	if @Activist is null
+	   begin
+	        select @Activist = 0
+	   end
+	   
+	   
+
+    select @AllUsers as 'Total Users',
+	@Business as 'Business',
+	@Nonprogit as 'Nonprofit',
+	@Activist as 'Activist'
+end
+
+--פונקציה לקבלת מידע על נציג של עמותה 
+alter procedure Nonprofit
+as
+begin
+    select Users.Email,Associations.AssociationName,
+	count(CampaignsID) as 'Campaigns Created'
+	from Users 
+	inner join Associations
+	on Users.UserID = Associations.UserID
+	inner join Campaigns
+	on Users.UserID = Campaigns.UserID
+	group by Users.Email,Associations.AssociationName	
+end
+
+
+--פונקציה לקבלת מידע על נציג עסקי
+alter procedure Buisness
+as
+begin  
+    select Users.Email,BusinessCompany.CompanyName,
+	count(Products.ProductID) as 'Total Donated Products'
+	from Users
+	inner join BusinessCompany
+	on Users.UserID = BusinessCompany.UserID
+	inner join Products
+	on Users.UserID = Products.RepresantativeID
+	group by Users.Email,BusinessCompany.CompanyName
+end
+
+--פונקציה לקבלת מידע על פעיל חברתי
+
+alter procedure Activist
+as 
+begin 
+	select Users.Email,Campaigns.CampaginName,Twitter.NumberOfTweets,LastWorkDay
+	from Users
+	inner join Twitter
+	on Users.UserID = Twitter.UserID
+	inner join Campaigns
+	on Twitter.CampaignID = Campaigns.CampaignsID
+end
+
+exec Activist
+
+--------------------------------------------------------------------------
+--דוח על קמפיינים
+
+--פונקציה לקבלת מידע כללי על כל קמפיינים
+create procedure AllCampaignsForOwner @campaignDate nvarchar(30)
+as
+begin
+    select Associations.AssociationName,Campaigns.CampaginName,Campaigns.CampaignCreation
+	from Campaigns
+	inner join Associations
+	on Campaigns.AssociationID = Associations.AssociationID
+	where CampaignCreation > @campaignDate
+end
+--קבלת מידע על קמפיינים שנקנו בהם מוצרים
+create procedure getDonationAmountOfCampaigns @campaignDate nvarchar(30)
+as
+begin
+    select distinct Campaigns.CampaignCreation,Campaigns.CampaginName,DonationAmount
+	from Campaigns
+	inner join Products
+	on Campaigns.CampaignsID = Products.CampaignID
+	where CampaignCreation >= @campaignDate
+	group by Campaigns.CampaignCreation,Campaigns.CampaginName,DonationAmount
+end
+--מידע על קמפיינים שהפעיל החברתי שיווק
+create procedure getTweetsOfCampaigns @campaignDate nvarchar(30)
+as
+begin
+	select distinct Campaigns.CampaignCreation,Campaigns.CampaginName,
+	sum(Twitter.NumberOfTweets) as 'Total Number of tweets'
+	from Campaigns
+	inner join Twitter
+	on Campaigns.CampaignsID = Twitter.CampaignID
+	where CampaignCreation >=  @campaignDate
+	group by Campaigns.CampaignCreation,Campaigns.CampaginName
+end

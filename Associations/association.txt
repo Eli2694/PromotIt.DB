@@ -5,7 +5,7 @@ AssociationEmail nvarchar(255),AssociationWebsite VARCHAR(512),RegisteredAssocia
 
 --2 יצירת פונקציה שתבדוק אם העמותה כבר קיימת בטבלה
 --select @employee_code =(select code from employees where ID = @ID)
-create procedure checkAssociation @AssociationName varchar(100),@AssociationEmail nvarchar(255),
+alter procedure checkAssociation @AssociationName varchar(100),@AssociationEmail nvarchar(255),
 @AssociationWebsite VARCHAR(512),@RegisteredAssociation varchar(10),
 @FullName varchar(50),@Email nvarchar(255)
 as
@@ -23,7 +23,7 @@ begin
  and AssociationEmail=@AssociationEmail and AssociationWebsite = @AssociationWebsite)
  begin
   
-  select @Answer = 'העמותה כבר במערכת , אין צורךלהירשם שוב'
+  select @Answer = 'העמותה כבר במערכת , אין צורך להירשם שוב'
  end
  else
  begin
@@ -35,5 +35,3 @@ end
 end
 
 
---הפעלה של הפונקציה 
--- exec checkAssociation UserID,AssociationName,AssociationEmail,AssociationWebsite,RegisteredAssociation

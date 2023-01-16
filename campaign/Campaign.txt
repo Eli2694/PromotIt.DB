@@ -4,26 +4,27 @@ UserID int foreign key references Users(UserID),
 AssociationID int foreign key references Associations(AssociationID),
 CampaginName varchar(100),CampaginHashtag nvarchar(20),CampaginWebsite VARCHAR(512))
 
-delete from Campaigns
-ALTER TABLE Campaigns
-ADD CampaignCreation datetime;
-select*from Campaigns
+--הוספת עמודה לטבלה
+--ALTER TABLE Campaigns
+--ADD CampaignCreation datetime;
+
 
 --2 יצירת פונקציה שתכניס קמפיין לטבלה 
 alter procedure InsertCampagin @CampaginName varchar(100),@CampaginHashtag nvarchar(20),
 @CampaginWebsite VARCHAR(512),
-@FullName varchar(50),@Email nvarchar(255),@DonationAmount money
+@Email nvarchar(255),@DonationAmount money
 as
 begin
 --הגדרת משתנים
 declare @Answer varchar(100),@UserID int,@AssociationID int
-select @UserID = (select UserID from Users where FullName = @FullName and Email = @Email)
+select @UserID = (select UserID from Users where  Email = @Email)
 if @UserID is null
 begin
  select @Answer ='המשתמש לא נמצא במערכת'
 end
 else
 begin 
+--המשתמש לא יוכל ליצור קמפיין אם הוא לא רשם את העמותה ממנה הוא מגיע
  select @AssociationID = (select AssociationID from Associations where UserID = @UserID)
  if @AssociationID is null
  begin
@@ -49,8 +50,6 @@ begin
  end
 
  --exec GetPersonalCampaignList 'gilgureli@gmail.com'
- --select * from Campaigns
- 
  
 --4 יצירת פונקציה לעדכון קמפיין
 create procedure UpdatePersonalCampaign @CampaginName varchar(100),@CampaginHashtag nvarchar(20),
@@ -72,8 +71,8 @@ end
  select @answer
 end
  
- -- exec UpdatePersonalCampaign 
 
+ --כאשר קונים מוצר שנתרם לקמפיין,סכום הכסף הולך לעמותה שיצרה את הקמפיין
  create procedure updateDonationAmount @campaignID int,@DonationAmount money
  as
  begin
@@ -84,11 +83,9 @@ end
 
 
 
- select * from Campaigns
- delete from Campaigns
+ --הוספה ומחיקה של עמודה מטבלה
+-- ALTER TABLE Campaigns
+--ADD DonationAmount Money;
 
- ALTER TABLE Campaigns
-ADD DonationAmount Money;
-
-ALTER TABLE Campaigns
-DROP COLUMN DonationAmount;
+--ALTER TABLE Campaigns
+--DROP COLUMN DonationAmount;

@@ -5,12 +5,6 @@ ProductID int foreign key references Products(ProductID),
 Country nvarchar(15),City nvarchar(15),HomeAddress nvarchar(60),
 PostalCode nvarchar(12),PhoneNumber nvarchar(15),OrderDate datetime)
 
-drop table Orders
-select * from [order confirmation]
-select * from orders
-
-delete from [order confirmation]
-delete from Orders
 
 -- טבלת אישור הזמנות
 create table [Order Confirmation](code int primary key identity,
@@ -27,9 +21,6 @@ begin
    insert into [Order Confirmation] values(@OrderID,@UserID)
 end
 
-select * from [Order Confirmation]
-
-
 
 --פוקציה בשביל להוריד מוצר אחד מהמלאי
 alter procedure UpdateUnitsInStockAfterPurchase @ProductID int
@@ -40,8 +31,6 @@ begin
  where ProductID = @ProductID
 end
 
---3פונקציה בשביל לקנות מוצר
---create procedure BuyProduct 
 
 --4 פונקציה בשביל נציג עסקי שיקבל רק את ההזמנות למוצרים אותם הוא תרם
 alter procedure GetOrdersThatBelongToMe @Email nvarchar(255)
@@ -56,11 +45,3 @@ begin
 	on Orders.ProductID = Products.ProductID
 	where RepresantativeID = @UserID
 end
-
-select* from [order Confirmation]
-
-exec UpdateUnitsInStockAfterPurchase 8
-
-select * from Products
-delete from Products
-where ProductID = 5

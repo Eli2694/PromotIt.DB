@@ -49,6 +49,7 @@ begin
 	on Users.UserID = Associations.UserID
 	inner join Campaigns
 	on Users.UserID = Campaigns.UserID
+	where Campaigns.isActive = 1
 	group by Users.Email,Associations.AssociationName	
 end
 
@@ -78,6 +79,7 @@ begin
 	on Users.UserID = Twitter.UserID
 	inner join Campaigns
 	on Twitter.CampaignID = Campaigns.CampaignsID
+	
 end
 
 exec Activist
@@ -86,24 +88,24 @@ exec Activist
 --דוח על קמפיינים
 
 --פונקציה לקבלת מידע כללי על כל קמפיינים
-create procedure AllCampaignsForOwner @campaignDate nvarchar(30)
+alter procedure AllCampaignsForOwner @campaignDate nvarchar(30)
 as
 begin
     select Associations.AssociationName,Campaigns.CampaginName,Campaigns.CampaignCreation
 	from Campaigns
 	inner join Associations
 	on Campaigns.AssociationID = Associations.AssociationID
-	where CampaignCreation > @campaignDate
+	where CampaignCreation > @campaignDate and Campaigns.isActive = 1
 end
 --קבלת מידע על קמפיינים שנקנו בהם מוצרים
-create procedure getDonationAmountOfCampaigns @campaignDate nvarchar(30)
+alter procedure getDonationAmountOfCampaigns @campaignDate nvarchar(30)
 as
 begin
     select distinct Campaigns.CampaignCreation,Campaigns.CampaginName,DonationAmount
 	from Campaigns
 	inner join Products
 	on Campaigns.CampaignsID = Products.CampaignID
-	where CampaignCreation >= @campaignDate
+	where CampaignCreation >= @campaignDate 
 	group by Campaigns.CampaignCreation,Campaigns.CampaginName,DonationAmount
 end
 --מידע על קמפיינים שהפעיל החברתי שיווק

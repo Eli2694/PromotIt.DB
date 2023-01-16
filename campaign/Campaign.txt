@@ -8,6 +8,17 @@ CampaginName varchar(100),CampaginHashtag nvarchar(20),CampaginWebsite VARCHAR(5
 --ALTER TABLE Campaigns
 --ADD CampaignCreation datetime;
 
+select * from Campaigns
+where isActive = 1
+
+--ALTER TABLE Campaigns
+--ADD isActive int;
+
+--update Campaigns
+--set isActive = 1
+
+
+select * from Users
 
 --2 יצירת פונקציה שתכניס קמפיין לטבלה 
 alter procedure InsertCampagin @CampaginName varchar(100),@CampaginHashtag nvarchar(20),
@@ -32,7 +43,7 @@ begin
  end
  else
  begin
-  insert into Campaigns values(@UserID,@AssociationID,@CampaginName,@CampaginHashtag,@CampaginWebsite,@DonationAmount,GETDATE())
+  insert into Campaigns values(@UserID,@AssociationID,@CampaginName,@CampaginHashtag,@CampaginWebsite,@DonationAmount,GETDATE(),1)
    select @Answer = 'הקמפיין נרשם במערכת'
  end
  end
@@ -40,13 +51,13 @@ begin
  end
 
  --3 יצירת פונקציה שתביא נתונים של כל הקמפיינים שהמשתמש יצר 
- create procedure GetPersonalCampaignList @Email nvarchar(255)
+ alter procedure GetPersonalCampaignList @Email nvarchar(255)
  as
  begin
  declare @Answer varchar(100),@UserID int
   select @UserID = (select UserID from Users where Email = @Email)
   select CampaginName,CampaginWebsite,CampaginHashtag,CampaignsID from Campaigns 
-  where UserID = @UserID
+  where UserID = @UserID and isActive = 1
  end
 
  --exec GetPersonalCampaignList 'gilgureli@gmail.com'
@@ -80,6 +91,16 @@ end
 	 set DonationAmount = DonationAmount + @DonationAmount
 	 where CampaignsID = @campaignID
  end
+
+ --פונקציה למחיקת קמפיין 
+alter procedure deleteCampaignAndItsProducts @CampaignID int
+AS
+BEGIN
+	 --delete from Campaigns where CampaignsID = @CampaignID
+	 update Campaigns
+	 set isActive = 0
+	 where CampaignsID = @CampaignID
+END
 
 
 

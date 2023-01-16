@@ -67,11 +67,3 @@ begin
 	select ProductName,UnitPrice,UnitsInStock,CampaignID,ImageURL from Products 
 	where CampaignID = @CampaignID and Products.RepresantativeID = @UserID
 end
-
-
---פונקציה למחיקת קמפיין 
-alter procedure deleteCampaignAndItsProducts @CampaignID int
-AS
-BEGIN
-	 delete from Campaigns where CampaignsID = @CampaignID
-END

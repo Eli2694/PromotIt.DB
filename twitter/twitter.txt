@@ -1,12 +1,27 @@
 --צירת טבלה שמשקפת אילו קמפיינים פעיל חברתי שיווק
-create  table Twitter(LastWorkDay datetime,
+create  table TwitterCmpaignPromotion(
+LastWorkDay datetime,
 UserID int ,
+UserName nvarchar(50),
 CampaignID int,
 NumberOfTweets int)
 
+select * from TwitterCmpaignPromotion
 
 --יצירת טבלה שמציגה כמה נקודות יש לפעיל חברתי בעקבות שיווק קמפיינים
 create  table TweetPoints(UserID int,Points int)
+
+-- טבלה של הודעות מהטוויטר
+create table Tweets
+(code int primary key identity,TweetMessage nvarchar(max),
+Author_id nvarchar(50),TweetDate datetime)
+
+select * from TwitterCmpaignPromotion
+select * from TweetPoints
+select * from Tweets
+
+delete from Tweets
+where code > 1
 
 
 --לאחר קניה של מוצר בעזרת נקודות,כמות הנקודות צריכה לרדת
@@ -48,16 +63,17 @@ begin
 end
 
 --לאחר שיווק של קמפיין יש לעדכן את מספר הפעמים שפעיל חברתי שיווק אותו
-create procedure updateTweetsPerCampaign @Email nvarchar(255),@Tweets int,@CampaignId int
+alter procedure updateTweetsPerCampaign 
+@Email nvarchar(255),@Tweets int,@CampaignId int,@UserName nvarchar(50)
 as
 begin
      declare @UserID int,@answer varchar(100)
 	 select @UserID=(select UserID from Users where Email=@Email)
 	 if @UserID is not null
 	    begin
-		   if exists(select UserID from Twitter where CampaignID = @CampaignId)
+		   if exists(select UserID from TwitterCmpaignPromotion where CampaignID = @CampaignId)
 		    begin
-				update Twitter
+				update TwitterCmpaignPromotion
 				set NumberOfTweets = NumberOfTweets + @Tweets, LastWorkDay = GETDATE()
 				where CampaignID = @CampaignId
 				select @answer = 'כמות ציוצים של קמפיין עודכנו בהצלחה'
@@ -65,7 +81,7 @@ begin
 		     else
 		     begin
 				  select @answer = 'קמפיין לא נמצא,יצירת קמפיין' 
-				  insert into Twitter values(getdate(),@UserID,@CampaignId,@Tweets);
+				  insert into TwitterCmpaignPromotion values(getdate(),@UserID,@UserName,@CampaignId,@Tweets);
 		     end
 		 end
 	     else
@@ -95,20 +111,21 @@ begin
 	   select @answer
 end
 --כאשר פעיל חברתי לוחץ על כפתור קידום קמפיין ,המידע נשמר במסד נתונים
-alter procedure InitializeTwitterCampaignPromotion @CampaignID int,@Email nvarchar(255)
+alter procedure InitializeTwitterCampaignPromotion 
+@CampaignID int,@Email nvarchar(255),@UserName nvarchar(50)
 as
 begin
     declare @UserID int,@answer varchar(100)
 	select @UserID=(select UserID from Users where Email=@Email)
 	if @UserID is not null
 	begin
-	    if exists(select UserID from Twitter where CampaignID = @CampaignID)
+	    if exists(select UserID from TwitterCmpaignPromotion where CampaignID = @CampaignID)
 		begin
 		    select @answer = 'הקמפיין נמצא , אין צורך להכניס אותו שוב'
 		end
 		else
 		begin
-		     insert into Twitter values(getdate(),@UserID,@CampaignID,0);
+		     insert into TwitterCmpaignPromotion values(getdate(),@UserID,@UserName,@CampaignID,0);
 			 select @answer = 'הקמפיין הוכנס לרשימה'
 		end
 	end
@@ -134,4 +151,32 @@ begin
 	end
 	 select @answer
 end
+
+
+alter procedure GetTwitterUsernameAndPromotedCampaigns
+as
+begin
+    select UserName,Campaigns.CampaginWebsite,Campaigns.CampaginHashtag,Users.Email,TwitterCmpaignPromotion.CampaignID
+	from TwitterCmpaignPromotion
+	inner join Users
+	on TwitterCmpaignPromotion.UserID = Users.UserID
+	inner join Campaigns
+	on TwitterCmpaignPromotion.CampaignID = Campaigns.CampaignsID
+	where Campaigns.isActive = 1
+end
+
+create procedure GetLastTweetDate
+as
+begin
+   select MAX(TweetDate) from Tweets
+end
+
+create procedure InsertTweetInfomration 
+@TweetMessage nvarchar(max),@Author_id nvarchar(30),@TweetDate datetime
+as
+begin
+     insert into Tweets values(@TweetMessage,@Author_id,@TweetDate)
+end
+
+
 

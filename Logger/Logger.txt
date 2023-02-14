@@ -1,0 +1,18 @@
+create table Logger(
+code int primary key identity ,
+LogMessage nvarchar(200),
+ExceptionSource varchar(max),
+LogType varchar(15),
+LogDate Datetime)
+
+drop table Logger
+
+Create Procedure LoggingToDataBase   
+@Msg varchar(2000),  
+@Exception varchar(100),  
+@LogType nvarchar(15),  
+@LogDate datetime 
+as  
+begin  
+Insert into Logger values(@Msg,@Exception,@LogType,@LogDate)  
+end

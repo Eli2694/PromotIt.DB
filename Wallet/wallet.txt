@@ -1,0 +1,72 @@
+--יצירת טבלת נתונים של ארנק לכל משתמש
+create  table Wallet(code int primary key identity,UserMoney Money,UserID int,Email nvarchar(255))
+
+--כל משתמש של האתר מתחיל עם 0 דולר
+alter procedure InitializeWallet @Email nvarchar(255)
+as 
+begin
+    declare @UserID int,@answer varchar(100)
+	select @UserID=(select UserID from Users where Email=@Email)
+	if @UserID is not null
+	begin
+	    if exists(select UserID from Wallet where UserID = @UserID)
+		begin
+		    select @answer = 'המשתמש נמצא ברשימה, אין צורך להכניס אותו פעם נוספת'
+		end
+		else
+		begin
+		     insert into Wallet values(0,@UserID,@Email)
+			 select @answer = 'המשתמש הוכנס לרשימה עם מאזן של 0 דולר'
+		end
+	end
+	 select @answer	
+end
+
+
+--כאשר משתמש נכנס לאתר, מופעל פונקתיה שמביאה את סכום כספו העדכני ששמור במסד נתונים
+alter procedure getUserMoney @Email nvarchar(255)
+as
+begin
+    declare @UserID int,@Money money
+    select @UserID=(select UserID from Users where Email=@Email)
+	if @UserID is null
+	   begin
+	       select @Money = 0
+	   end
+	   else
+	   begin 
+	        if exists(select UserMoney from Wallet where UserID = @UserID)
+			  begin
+			      select @Money = (select UserMoney from Wallet where UserID = @UserID)
+			  end
+			  else
+			  begin
+			      select @Money = 0
+			  end
+	   end
+	select @Money
+end
+
+
+--עדכון כספו של משתמש לאחר הוספה עצמאית
+create procedure UpdateUserMoney @UserMoney money,@Email nvarchar(255)
+as
+begin
+     declare @UserID int,@Money money
+	 select @UserID=(select UserID from Users where Email=@Email)
+	 select @Money=(select UserMoney from Wallet where UserID = @UserID)
+	 Update Wallet
+	 Set UserMoney = @Money + @UserMoney
+	 where UserID = @UserID
+end
+--עדכון כספו של משתמש לאחר קנייה
+alter procedure DecreaseUserMoneyAfterBuy @UserMoney money,@Email nvarchar(255)
+as
+begin
+     declare @UserID int,@Money money
+	 select @UserID=(select UserID from Users where Email=@Email)
+	 select @Money=(select UserMoney from Wallet where UserID = @UserID)
+	 Update Wallet
+	 Set UserMoney = (@Money - @UserMoney)
+	 where UserID = @UserID
+end

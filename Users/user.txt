@@ -1,0 +1,71 @@
+--1 יצירת טבלת משתמשים רשומים לאתר
+create  table Users(UserID int primary key identity,FullName varchar(50),
+Email nvarchar(255))
+
+--ALTER TABLE Users
+--ADD UserRole nvarchar(30);
+
+--ALTER TABLE Campaigns
+--DROP COLUMN UserRole;
+
+
+
+--2 יצירת פונקציה שתבדוק אם המשתמש כבר קיים בטבלה
+--3 אם כן לא נוסיף אותו, אם לא נוסיף אותו
+
+alter procedure checkNewSiteUser @FullName varchar(50),@Email nvarchar(255)
+as
+begin
+ if exists(select UserID from Users where Email=@Email)
+ begin
+  declare @answer varchar(100)
+  select @answer = 'המשתמש נמצא , אין צורך לבצע פעולה נוספת'
+
+ end
+ else
+ begin
+ 
+	insert into Users values(@FullName,@Email,NULL)
+ end
+end
+
+--הפעלה של הפונקציה 
+-- exec checkNewSiteUser FullName,Email
+--exec checkNewSiteUser 'test procedure','test@gmail.com','BusinessCompany',0
+--drop procedure checkNewSiteUser
+
+--יצירת טבלה מחוברת בין עמותות לקמפיינים
+
+alter procedure GetAllInfoAboutCampaigns
+as
+begin
+select CampaignsID,AssociationName,AssociationWebsite,CampaginName
+,CampaginHashtag,CampaginWebsite,DonationAmount
+from Associations
+inner join Campaigns 
+on Associations.AssociationID = Campaigns.AssociationID
+where Campaigns.isActive = 1
+end
+
+--עדכון הרשאה של משתמש
+create procedure UpdateRole @UserRole varchar(30),@Email nvarchar(255)
+as
+begin
+   declare @UserID int,@answer varchar(100)
+   select @UserID=(select UserID from Users where Email=@Email)
+   if @UserID is null
+       begin
+	       select @answer = 'משתמש לא נמצא'
+	   end
+	   else
+	   begin
+	       select @answer = 'משתמש נמצא, עדכון הרשאה'
+		   update Users
+		   set UserRole = @UserRole
+		   where UserID = @UserID
+	   end
+     select @answer    
+end
+
+
+

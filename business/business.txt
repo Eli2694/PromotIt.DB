@@ -1,0 +1,73 @@
+--1 יצירת טבלה של מוצרים
+create table Products(ProductID int primary key identity,
+CampaignID int foreign key references Campaigns(CampaignsID),
+ProductName varchar(100),UnitPrice money,UnitsInStock int,
+RepresantativeID int)
+
+-- שינוי טבלה, הוספת עמודה
+--ALTER TABLE Products
+--ADD RepresentativeID int;
+--שינוי טבלה,הורדת עמודה
+--ALTER TABLE Products
+--DROP COLUMN RepresentativeID;
+
+--select* from products
+--delete from products
+
+
+--2פומקציה להכנסת מוצר
+alter procedure DonateProduct @ProductName varchar(100),@UnitPrice money,@UnitsInStock int,
+@CampaignsID int,@Email nvarchar(255),@ImageURL nvarchar(max)
+ as
+ begin
+ declare @Answer varchar(100),@UserID int
+ --בדיקה שהקמפיין קיים לפני שתורמים לו מוצר
+  if exists(select CampaignsID from Campaigns where CampaignsID = @CampaignsID)
+  begin 
+   select @Answer ='המוצר נכנס לקמפיין'
+   select @UserID=(select UserID from Users where Email=@Email)
+   insert into Products values(@CampaignsID,@ProductName, @UnitPrice,@UnitsInStock,@UserID,@ImageURL)
+  end
+  else
+  begin
+   select @Answer = 'הקמפיין לא נמצא '
+  end
+  select @Answer
+ end
+
+ -- exec DonateProduct
+
+--update product
+create procedure UpdataProduct @ProductName varchar(100),@UnitPrice money,@UnitsInStock int,
+@ProductID int
+as
+begin
+ declare @Answer varchar(100)
+ --בדיקה שהמוצר קיים לפני שמשנים את הנתונים שלו
+  if exists(select ProductID from Products where ProductID = @ProductID)
+  begin
+    update Products
+	set ProductName = @ProductName, UnitPrice = @UnitPrice, UnitsInStock = @UnitsInStock
+	where ProductID = @ProductID
+	select @Answer = 'המוצר נמצא '
+  end
+  else
+  begin
+  select @Answer = 'המוצר לא נמצא '
+  end
+  select @Answer
+end
+
+--להביא מוצרים ששייכים רק לנציג שתרם אותם
+alter procedure GetProductsThatBelongToMe @CampaignID int, @Email nvarchar(255) 
+as
+begin
+    declare @UserID int
+    select @UserID=(select UserID from Users where Email=@Email)
+	select ProductName,UnitPrice,UnitsInStock,CampaignID,ImageURL from Products 
+	where CampaignID = @CampaignID and Products.RepresantativeID = @UserID
+end
+
+
+
+

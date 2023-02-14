@@ -1,0 +1,112 @@
+--טבלת קמפיינים
+create  table Campaigns(CampaignsID int primary key identity,
+UserID int foreign key references Users(UserID),
+AssociationID int foreign key references Associations(AssociationID),
+CampaginName varchar(100),CampaginHashtag nvarchar(20),CampaginWebsite VARCHAR(512))
+
+--הוספת עמודה לטבלה
+--ALTER TABLE Campaigns
+--ADD CampaignCreation datetime;
+
+select * from Campaigns
+where isActive = 1
+
+--ALTER TABLE Campaigns
+--ADD isActive int;
+
+--update Campaigns
+--set isActive = 1
+
+
+select * from Users
+
+--2 יצירת פונקציה שתכניס קמפיין לטבלה 
+alter procedure InsertCampagin @CampaginName varchar(100),@CampaginHashtag nvarchar(20),
+@CampaginWebsite VARCHAR(512),
+@Email nvarchar(255),@DonationAmount money
+as
+begin
+--הגדרת משתנים
+declare @Answer varchar(100),@UserID int,@AssociationID int
+select @UserID = (select UserID from Users where  Email = @Email)
+if @UserID is null
+begin
+ select @Answer ='המשתמש לא נמצא במערכת'
+end
+else
+begin 
+--המשתמש לא יוכל ליצור קמפיין אם הוא לא רשם את העמותה ממנה הוא מגיע
+ select @AssociationID = (select AssociationID from Associations where UserID = @UserID)
+ if @AssociationID is null
+ begin
+   select @Answer ='המשתמש לא הכניס עמותה'
+ end
+ else
+ begin
+  insert into Campaigns values(@UserID,@AssociationID,@CampaginName,@CampaginHashtag,@CampaginWebsite,@DonationAmount,GETDATE(),1)
+   select @Answer = 'הקמפיין נרשם במערכת'
+ end
+ end
+ select @Answer
+ end
+
+ --3 יצירת פונקציה שתביא נתונים של כל הקמפיינים שהמשתמש יצר 
+ alter procedure GetPersonalCampaignList @Email nvarchar(255)
+ as
+ begin
+ declare @Answer varchar(100),@UserID int
+  select @UserID = (select UserID from Users where Email = @Email)
+  select CampaginName,CampaginWebsite,CampaginHashtag,CampaignsID from Campaigns 
+  where UserID = @UserID and isActive = 1
+ end
+
+ --exec GetPersonalCampaignList 'gilgureli@gmail.com'
+ 
+--4 יצירת פונקציה לעדכון קמפיין
+create procedure UpdatePersonalCampaign @CampaginName varchar(100),@CampaginHashtag nvarchar(20),
+@CampaginWebsite VARCHAR(512),@CampaignsID int
+as
+begin
+declare @answer varchar(50)
+if exists(select UserID from Campaigns where CampaignsID = @CampaignsID)
+begin
+  update Campaigns
+  set CampaginName = @CampaginName,CampaginHashtag = @CampaginHashtag,CampaginWebsite = @CampaginWebsite
+  where CampaignsID = @CampaignsID
+  select @answer = 'קמפיין עודכן בהצלחה'
+end
+else
+begin
+ select @answer = 'קמפיין לא עודכן בהצלחה'
+end
+ select @answer
+end
+ 
+
+ --כאשר קונים מוצר שנתרם לקמפיין,סכום הכסף הולך לעמותה שיצרה את הקמפיין
+ create procedure updateDonationAmount @campaignID int,@DonationAmount money
+ as
+ begin
+     update Campaigns
+	 set DonationAmount = DonationAmount + @DonationAmount
+	 where CampaignsID = @campaignID
+ end
+
+ --פונקציה למחיקת קמפיין 
+alter procedure deleteCampaignAndItsProducts @CampaignID int
+AS
+BEGIN
+	 --delete from Campaigns where CampaignsID = @CampaignID
+	 update Campaigns
+	 set isActive = 0
+	 where CampaignsID = @CampaignID
+END
+
+
+
+ --הוספה ומחיקה של עמודה מטבלה
+-- ALTER TABLE Campaigns
+--ADD DonationAmount Money;
+
+--ALTER TABLE Campaigns
+--DROP COLUMN DonationAmount;

@@ -1,0 +1,65 @@
+--יצירת טבלה על חברה של נציג עסקי
+create  table BusinessCompany(CompanyID int primary key identity,
+UserID int foreign key references Users(UserID),
+CompanyName varchar(100),
+CompanyWebsite VARCHAR(512),
+RegisteredCompany varchar(10))
+
+--הכנסת נתונים למסד נתונים של חברה עסקית רק פעם אחת
+create procedure CreateBusinessCompany
+@CompanyName varchar(100),
+@CompanyWebsite VARCHAR(512),
+@RegisteredCompany varchar(10),
+@Email nvarchar(255)
+as
+begin
+--הגדרת משתנים
+declare @Answer varchar(100),@UserID int
+select @UserID = (select UserID from Users where  Email = @Email)
+if @UserID is null
+begin
+ select @Answer ='המשתמש לא נמצא במערכת'
+end
+else
+begin 
+ if exists(select CompanyID from BusinessCompany where CompanyName = @CompanyName 
+ and CompanyWebsite = @CompanyWebsite)
+ begin
+  
+  select @Answer = 'החברה כבר במערכת , אין צורך להירשם שוב'
+ end
+ else
+ begin
+	insert into BusinessCompany values(@UserID,@CompanyName,@CompanyWebsite,@RegisteredCompany)
+	select @Answer = 'הרשמת החברה הצליחה'
+ end
+end
+ select @Answer
+end
+
+--פונקציה ששולת את שם החברה לאפליקציה של ריאקט
+alter procedure getCompanyName @ProductID int
+as
+begin
+    declare @UserID int
+	select @UserID=(select RepresantativeID from Products where ProductID=@ProductID)
+	select CompanyName from BusinessCompany where UserID = @UserID;
+end
+
+--בדיקה האם נציג עסקי רשם את החברה ממנה הוא מגיע
+create procedure CheckIfTheUserRegisterBusinessCompany @Email nvarchar(255)
+as
+begin
+    declare @UserID int,@RegisteredCompany varchar(10)
+	select @UserID=(select UserID from Users where Email=@Email)
+	select @RegisteredCompany=(select RegisteredCompany from BusinessCompany)
+	if @RegisteredCompany is null
+		begin
+		    select @RegisteredCompany = 'false'
+		end
+		else 
+		begin 
+		    select @RegisteredCompany = 'true'
+		end
+	select @RegisteredCompany
+end

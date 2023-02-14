@@ -178,5 +178,3 @@ begin
      insert into Tweets values(@TweetMessage,@Author_id,@TweetDate)
 end
 
-
-

@@ -44,6 +44,7 @@ select CampaignsID,AssociationName,AssociationWebsite,CampaginName
 from Associations
 inner join Campaigns 
 on Associations.AssociationID = Campaigns.AssociationID
+where Campaigns.isActive = 1
 end
 
 --עדכון הרשאה של משתמש
@@ -65,3 +66,6 @@ begin
 	   end
      select @answer    
 end
+
+
+

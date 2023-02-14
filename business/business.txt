@@ -67,3 +67,7 @@ begin
 	select ProductName,UnitPrice,UnitsInStock,CampaignID,ImageURL from Products 
 	where CampaignID = @CampaignID and Products.RepresantativeID = @UserID
 end
+
+
+
+

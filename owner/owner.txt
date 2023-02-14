@@ -1,3 +1,5 @@
+
+
 --פונקציה לקבלת כמות משתמשים באתר וסוג המשתמשים
 alter procedure CountDifferentUsers
 as
@@ -73,12 +75,12 @@ end
 alter procedure Activist
 as 
 begin 
-	select Users.Email,Campaigns.CampaginName,Twitter.NumberOfTweets,LastWorkDay
+	select Users.Email,Campaigns.CampaginName,TwitterCmpaignPromotion.NumberOfTweets,LastWorkDay
 	from Users
-	inner join Twitter
-	on Users.UserID = Twitter.UserID
+	inner join TwitterCmpaignPromotion
+	on Users.UserID = TwitterCmpaignPromotion.UserID
 	inner join Campaigns
-	on Twitter.CampaignID = Campaigns.CampaignsID
+	on TwitterCmpaignPromotion.CampaignID = Campaigns.CampaignsID
 	
 end
 
@@ -109,14 +111,56 @@ begin
 	group by Campaigns.CampaignCreation,Campaigns.CampaginName,DonationAmount
 end
 --מידע על קמפיינים שהפעיל החברתי שיווק
-create procedure getTweetsOfCampaigns @campaignDate nvarchar(30)
+alter procedure getTweetsOfCampaigns @campaignDate nvarchar(30)
 as
 begin
 	select distinct Campaigns.CampaignCreation,Campaigns.CampaginName,
-	sum(Twitter.NumberOfTweets) as 'Total Number of tweets'
+	sum(TwitterCmpaignPromotion.NumberOfTweets) as 'Total Number of tweets'
 	from Campaigns
-	inner join Twitter
-	on Campaigns.CampaignsID = Twitter.CampaignID
+	inner join TwitterCmpaignPromotion
+	on Campaigns.CampaignsID = TwitterCmpaignPromotion.CampaignID
 	where CampaignCreation >=  @campaignDate
 	group by Campaigns.CampaignCreation,Campaigns.CampaginName
 end
+
+--select* from Users
+--delete from users
+
+--select* from Associations
+--delete from Associations
+
+--select * from BusinessCompany
+--delete from BusinessCompany
+
+--select* from Campaigns
+--delete from Campaigns
+
+--select* from Products
+--delete from Products
+
+--select* from Orders
+--delete from Orders
+
+--select* from [Order Confirmation]
+--delete from [Order Confirmation]
+
+--select* from Wallet
+--delete from wallet
+
+--select* from Twitter
+--select * from TweetPoints
+
+--select Users.UserID,Users.Email,COUNT(*) as 'NumberOfCampaigns'
+--from Users
+--inner join Campaigns
+--on Users.UserID = Campaigns.UserID
+--group by Users.UserID,Users.Email
+
+
+--select Users.UserID,count(OrderID) AS 'NUMBER OF ORDERS'
+--from Users
+--inner join Orders
+--on Users.UserID = Orders.UserID
+--GROUP BY Users.UserID
+
+
